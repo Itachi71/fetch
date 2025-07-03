@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manus Copisti Table Scraper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .input-section {
+            background: #f8fafc;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            resize: vertical;
+            min-height: 120px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .settings {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .settings input, .settings select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .settings input:focus, .settings select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            min-width: 140px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border-top: 4px solid #667eea;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+
+        .progress-container {
+            background: #f3f4f6;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .log-container {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 25px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 2px 0;
+        }
+
+        .log-success { color: #10b981; }
+        .log-error { color: #ef4444; }
+        .log-warning { color: #f59e0b; }
+        .log-info { color: #3b82f6; }
+
+        .data-preview {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .data-preview table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .data-preview th, .data-preview td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .data-preview th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .data-preview tr:hover {
+            background: #f9fafb;
+        }
+
+        .proxy-warning {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .proxy-warning strong {
+            color: #78350f;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📜 Manus Copisti Scraper</h1>
+            <p>Extract table data from Manus Online copyist detail pages</p>
+        </div>
+
+        <div class="content">
+            <div class="proxy-warning">
+                <strong>⚠️ Important:</strong> This tool uses a CORS proxy service (allorigins.win) to bypass browser restrictions. 
+                If the proxy is unavailable, you may need to use a different approach or run this locally with a server.
+            </div>
+
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="urlList">Copyist Detail URLs (one per line):</label>
+                    <textarea id="urlList" placeholder="Enter URLs like:
+https://manus.iccu.sbn.it/en/copisti2/-/manus-authorities/detail/222652
+https://manus.iccu.sbn.it/en/copisti2/-/manus-authorities/detail/123456
+https://manus.iccu.sbn.it/en/copisti2/-/manus-authorities/detail/789012
+
+Or just enter the IDs (one per line):
+222652
+123456
+789012"></textarea>
+                </div>
+
+                <div class="settings">
+                    <div class="input-group">
+                        <label for="delay">Delay between requests (ms):</label>
+                        <input type="number" id="delay" value="3000" min="1000" max="10000">
+                    </div>
+                    <div class="input-group">
+                        <label for="timeout">Request timeout (ms):</label>
+                        <input type="number" id="timeout" value="15000" min="5000" max="30000">
+                    </div>
+                    <div class="input-group">
+                        <label for="retries">Max retries per URL:</label>
+                        <input type="number" id="retries" value="3" min="1" max="5">
+                    </div>
+                    <div class="input-group">
+                        <label for="format">Output format:</label>
+                        <select id="format">
+                            <option value="csv">CSV</option>
+                            <option value="json">JSON</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-primary" id="startBtn" onclick="startScraping()">
+                    🚀 Start Scraping
+                </button>
+                <button class="btn btn-secondary" id="stopBtn" onclick="stopScraping()" disabled>
+                    ⏸️ Stop Scraping
+                </button>
+                <button class="btn btn-success" id="downloadBtn" onclick="downloadData()" disabled>
+                    📥 Download Data
+                </button>
+                <button class="btn btn-danger" id="clearBtn" onclick="clearData()">
+                    🗑️ Clear Data
+                </button>
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalUrls">0</div>
+                    <div class="stat-label">Total URLs</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="processedUrls">0</div>
+                    <div class="stat-label">Processed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="successfulUrls">0</div>
+                    <div class="stat-label">Successful</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="failedUrls">0</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="extractedRows">0</div>
+                    <div class="stat-label">Data Rows</div>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <div class="log-container" id="logContainer">
+                <div class="log-entry log-info">[INFO] Ready to start scraping. Enter URLs above and click Start Scraping.</div>
+            </div>
+
+            <div class="data-preview" id="dataPreview">
+                <h3>📊 Data Preview (First 10 rows)</h3>
+                <div id="previewTable"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let scrapingData = [];
+        let isScrapingActive = false;
+        let currentIndex = 0;
+        let urlList = [];
+        let stats = {
+            total: 0,
+            processed: 0,
+            successful: 0,
+            failed: 0,
+            rows: 0
+        };
+
+        // CORS proxy URLs (fallback options)
+        const proxyUrls = [
+            'https://api.allorigins.win/raw?url=',
+            'https://corsproxy.io/?',
+            'https://cors-anywhere.herokuapp.com/',
+            'https://thingproxy.freeboard.io/fetch/'
+        ];
+        let currentProxyIndex = 0;
+
+        // Logging function
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logContainer = document.getElementById('logContainer');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+
+        // Update statistics
+        function updateStats() {
+            document.getElementById('totalUrls').textContent = stats.total;
+            document.getElementById('processedUrls').textContent = stats.processed;
+            document.getElementById('successfulUrls').textContent = stats.successful;
+            document.getElementById('failedUrls').textContent = stats.failed;
+            document.getElementById('extractedRows').textContent = stats.rows;
+
+            const progress = stats.total > 0 ? (stats.processed / stats.total) * 100 : 0;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+        }
+
+        // Parse URLs from input
+        function parseUrls() {
+            const input = document.getElementById('urlList').value.trim();
+            if (!input) return [];
+
+            const lines = input.split('\n').map(line => line.trim()).filter(line => line);
+            const urls = [];
+
+            for (const line of lines) {
+                if (line.startsWith('http')) {
+                    urls.push(line);
+                } else if (/^\d+$/.test(line)) {
+                    // If it's just a number, construct the full URL
+                    urls.push(`https://manus.iccu.sbn.it/en/copisti2/-/manus-authorities/detail/${line}`);
+                }
+            }
+
+            return urls;
+        }
+
+        // Fetch page content with proxy
+        async function fetchWithProxy(url, retryCount = 0) {
+            const maxRetries = parseInt(document.getElementById('retries').value);
+            const timeout = parseInt(document.getElementById('timeout').value);
+
+            if (retryCount >= maxRetries) {
+                throw new Error(`Max retries (${maxRetries}) exceeded`);
+            }
+
+            const proxyUrl = proxyUrls[currentProxyIndex] + encodeURIComponent(url);
+            
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+                const response = await fetch(proxyUrl, {
+                    signal: controller.signal,
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                    }
+                });
+
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const text = await response.text();
+                return text;
+
+            } catch (error) {
+                log(`Proxy ${currentProxyIndex + 1} failed: ${error.message}`, 'warning');
+                
+                // Try next proxy
+                currentProxyIndex = (currentProxyIndex + 1) % proxyUrls.length;
+                
+                if (retryCount < maxRetries - 1) {
+                    log(`Retrying with proxy ${currentProxyIndex + 1}...`, 'info');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    return fetchWithProxy(url, retryCount + 1);
+                } else {
+                    throw error;
+                }
+            }
+        }
+
+        // Extract table data from HTML
+        function extractTableData(html, sourceUrl) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            const tables = doc.querySelectorAll('table');
+            const extractedData = [];
+            
+            if (tables.length === 0) {
+                log('No tables found on the page', 'warning');
+                return [];
+            }
+
+            tables.forEach((table, tableIndex) => {
+                const rows = table.querySelectorAll('tr');
+                
+                if (rows.length === 0) return;
+
+                // Try to determine if this table has headers
+                const firstRow = rows[0];
+                const hasHeaders = firstRow.querySelectorAll('th').length > 0;
+                
+                if (hasHeaders) {
+                    // Process table with headers
+                    const headers = Array.from(firstRow.querySelectorAll('th, td')).map(th => 
+                        th.textContent.trim().replace(/\s+/g, ' ')
+                    );
+                    
+                    for (let i = 1; i < rows.length; i++) {
+                        const cells = rows[i].querySelectorAll('td, th');
+                        const rowData = {
+                            source_url: sourceUrl,
+                            table_index: tableIndex,
+                            row_index: i - 1
+                        };
+                        
+                        cells.forEach((cell, cellIndex) => {
+                            const header = headers[cellIndex] || `Column_${cellIndex + 1}`;
+                            const value = cell.textContent.trim().replace(/\s+/g, ' ');
+                            rowData[header] = value;
+                        });
+                        
+                        extractedData.push(rowData);
+                    }
+                } else {
+                    // Process table without headers (key-value pairs)
+                    rows.forEach((row, rowIndex) => {
+                        const cells = row.querySelectorAll('td, th');
+                        if (cells.length >= 2) {
+                            const key = cells[0].textContent.trim().replace(/\s+/g, ' ');
+                            const value = cells[1].textContent.trim().replace(/\s+/g, ' ');
+                            
+                            if (key && value) {
+                                extractedData.push({
+                                    source_url: sourceUrl,
+                                    table_index: tableIndex,
+                                    row_index: rowIndex,
+                                    key: key,
+                                    value: value
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+
+            return extractedData;
+        }
+
+        // Process a single URL
+        async function processUrl(url) {
+            log(`Processing: ${url}`, 'info');
+            
+            try {
+                const html = await fetchWithProxy(url);
+                const tableData = extractTableData(html, url);
+                
+                if (tableData.length > 0) {
+                    scrapingData.push(...tableData);
+                    stats.rows += tableData.length;
+                    stats.successful++;
+                    log(`✅ Extracted ${tableData.length} rows from ${url}`, 'success');
+                } else {
+                    stats.failed++;
+                    log(`❌ No data extracted from ${url}`, 'warning');
+                }
+                
+            } catch (error) {
+                stats.failed++;
+                log(`❌ Error processing ${url}: ${error.message}`, 'error');
+            }
+            
+            stats.processed++;
+            updateStats();
+        }
+
+        // Start scraping process
+        async function startScraping() {
+            urlList = parseUrls();
+            
+            if (urlList.length === 0) {
+                log('❌ No valid URLs provided', 'error');
+                return;
+            }
+
+            // Reset stats
+            stats = {
+                total: urlList.length,
+                processed: 0,
+                successful: 0,
+                failed: 0,
+                rows: scrapingData.length
+            };
+
+            isScrapingActive = true;
+            currentIndex = 0;
+            
+            // Update UI
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('downloadBtn').disabled = true;
+            
+            log(`🚀 Starting scrape of ${urlList.length} URLs...`, 'info');
+            updateStats();
+
+            const delay = parseInt(document.getElementById('delay').value);
+
+            // Process each URL
+            for (let i = 0; i < urlList.length && isScrapingActive; i++) {
+                currentIndex = i;
+                await processUrl(urlList[i]);
+                
+                // Add delay between requests
+                if (i < urlList.length - 1 && isScrapingActive) {
+                    log(`⏱️ Waiting ${delay}ms before next request...`, 'info');
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+
+            // Finish scraping
+            isScrapingActive = false;
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            
+            if (scrapingData.length > 0) {
+                document.getElementById('downloadBtn').disabled = false;
+                updatePreview();
+                log(`🎉 Scraping completed! Total rows: ${stats.rows}`, 'success');
+            } else {
+                log('❌ No data was extracted', 'error');
+            }
+        }
+
+        // Stop scraping process
+        function stopScraping() {
+            isScrapingActive = false;
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            
+            if (scrapingData.length > 0) {
+                document.getElementById('downloadBtn').disabled = false;
+                updatePreview();
+            }
+            
+            log('⏸️ Scraping stopped by user', 'warning');
+        }
+
+        // Update data preview
+        function updatePreview() {
+            const preview = document.getElementById('dataPreview');
+            const tableContainer = document.getElementById('previewTable');
+            
+            if (scrapingData.length === 0) {
+                preview.style.display = 'none';
+                return;
+            }
+
+            preview.style.display = 'block';
+            
+            // Get all unique keys from the data
+            const allKeys = [...new Set(scrapingData.flatMap(row => Object.keys(row)))];
+            
+            // Create table
+            const table = document.createElement('table');
+            
+            // Create header
+            const headerRow = document.createElement('tr');
+            allKeys.forEach(key => {
+                const th = document.createElement('th');
+                th.textContent = key;
+                headerRow.appendChild(th);
+            });
+            table.appendChild(headerRow);
+            
+            // Create data rows (first 10)
+            const rowsToShow = Math.min(10, scrapingData.length);
+            for (let i = 0; i < rowsToShow; i++) {
+                const row = document.createElement('tr');
+                allKeys.forEach(key => {
+                    const td = document.createElement('td');
+                    td.textContent = scrapingData[i][key] || '';
+                    row.appendChild(td);
+                });
+                table.appendChild(row);
+            }
+            
+            tableContainer.innerHTML = '';
+            tableContainer.appendChild(table);
+            
+            if (scrapingData.length > 10) {
+                const note = document.createElement('p');
+                note.textContent = `Showing first 10 rows of ${scrapingData.length} total rows.`;
+                note.style.marginTop = '15px';
+                note.style.fontStyle = 'italic';
+                note.style.color = '#6b7280';
+                tableContainer.appendChild(note);
+            }
+        }
+
+        // Convert data to CSV
+        function convertToCSV(data) {
+            if (data.length === 0) return '';
+            
+            const allKeys = [...new Set(data.flatMap(row => Object.keys(row)))];
+            const csvRows = [];
+            
+            // Add header
+            csvRows.push(allKeys.join(','));
+            
+            // Add data rows
+            data.forEach(row => {
+                const values = allKeys.map(key => {
+                    const value = row[key] || '';
+                    // Escape quotes and wrap in quotes if contains comma, quote, or newline
+                    if (value.toString().includes(',') || value.toString().includes('"') || value.toString().includes('\n')) {
+                        return `"${value.toString().replace(/"/g, '""')}"`;
+                    }
+                    return value;
+                });
+                csvRows.push(values.join(','));
+            });
+            
+            return csvRows.join('\n');
+        }
+
+        // Download data
+        function downloadData() {
+            if (scrapingData.length === 0) {
+                log('❌ No data to download', 'error');
+                return;
+            }
+
+            const format = document.getElementById('format').value;
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+            
+            let content, filename, mimeType;
+
+            if (format === 'csv') {
+                content = convertToCSV(scrapingData);
+                filename = `manus_copisti_${timestamp}.csv`;
+                mimeType = 'text/csv;charset=utf-8;';
+            } else if (format === 'json') {
+                content = JSON.stringify(scrapingData, null, 2);
+                filename = `manus_copisti_${timestamp}.json`;
+                mimeType = 'application/json;charset=utf-8;';
+            }
+
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            
+            URL.revokeObjectURL(url);
+            log(`📥 Downloaded ${scrapingData.length} rows as ${filename}`, 'success');
+        }
+
+        // Clear all data
+        function clearData() {
+            scrapingData = [];
+            stats = {
+                total: 0,
+                processed: 0,
+                successful: 0,
+                failed: 0,
+                rows: 0
+            };
+            
+            updateStats();
+            document.getElementById('dataPreview').style.display = 'none';
+            document.getElementById('downloadBtn').disabled = true;
+            document.getElementById('logContainer').innerHTML = '<div class="log-entry log-info">[INFO] Data cleared. Ready to start scraping.</div>';
+            
+            log('🗑️ All data cleared', 'info');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStats();
+            log('📜 Manus Copisti Scraper initialized', 'info');
+            log('ℹ️ Enter copyist detail URLs or IDs in the text area above', 'info');
+        });
+    </script>
+</body>
+</html>
